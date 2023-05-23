@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gerenciamento de Recursos Financeiros de Clubes</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f2f2f2;
+    }
+
+    h1 {
+      text-align: center;
+      margin: 20px 0;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #ffffff;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .form-group input[type="text"],
+    .form-group input[type="number"] {
+      width: 100%;
+      padding: 8px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    .form-group button {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      background-color: #4caf50;
+      color: #ffffff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .form-group button:hover {
+      background-color: #45a049;
+    }
+
+    .message {
+      margin-top: 20px;
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 4px;
+    }
+
+    .success {
+      background-color: #d4edda;
+      color: #155724;
+    }
+
+    .error {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+
+    .clubes-list {
+      margin-top: 20px;
+      padding: 10px;
+      background-color: #f2f2f2;
+    }
+
+    .clubes-list h3 {
+      margin-top: 0;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Gerenciamento de Recursos Financeiros de Clubes</h1>
+  <div class="container">
+    <div class="form-group">
+      <label for="clube">Clube:</label>
+      <input type="text" id="clube" name="clube" placeholder="Nome do clube">
+    </div>
+    <div class="form-group">
+      <label for="saldo_disponivel">Saldo Disponível:</label>
+      <input type="number" id="saldo_disponivel" name="saldo_disponivel" placeholder="Saldo disponível">
+    </div>
+    <div class="form-group">
+      <button onclick="cadastrarClube()">Cadastrar Clube</button>
+    </div>
+    <div id="message" class="message"></div>
+
+    <div class="clubes-list">
+      <h3>Lista de Clubes</h3>
+      <ul id="clubes"></ul>
+    </div>
+  </div>
+
+  <script>
+    // Função para cadastrar um clube
+    function cadastrarClube() {
+      var clube = document.getElementById("clube").value;
+      var saldoDisponivel = document.getElementById("saldo_disponivel").value;
+
+      // Cria um objeto com os dados do clube
+      var clubeData = {
+        clube: clube,
+        saldo_disponivel: saldoDisponivel
+      };
+
+      // Envia uma requisição POST para a API para cadastrar o clube
+      fetch('/api/index.php?action=cadastrar-clube', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(clubeData)
+      })
+        .then(function (response) {
+          if (response.ok) {
+            return response.text();
+          } else {
+            throw new Error('Erro ao cadastrar clube');
+          }
+        })
+        .then(function (data) {
+          showSuccessMessage(data);
+          listarClubes();
+        })
+        .catch(function (error) {
+          showErrorMessage(error.message);
+        });
+    }
+
+    // Função para listar todos os clubes
+    function listarClubes() {
+      // Envia uma requisição GET para a API para obter a lista de clubes
+      fetch('/api/index.php?action=listar-clubes')
+        .then(function (response) {
+          if (response.ok) {
+            return response.json();
+          } else {
+            throw new Error('Erro ao obter lista de clubes');
+          }
+        })
+        .then(function (data) {
+          showClubList(data);
+        })
+        .catch(function (error) {
+          showErrorMessage(error.message);
+        });
+    }
+
+    // Função para exibir a lista de clubes na página
+    function showClubList(clubes) {
+      var clubesList = document.getElementById("clubes");
+      clubesList.innerHTML = "";
+
+      clubes.forEach(function (clube) {
+        var li = document.createElement("li");
+        li.textContent = clube.clube + " - Saldo disponível: " + clube.saldo_disponivel;
+        clubesList.appendChild(li);
+      });
+    }
+
+    // Função para exibir uma mensagem de sucesso
+    function showSuccessMessage(message) {
+      var messageDiv = document.getElementById("message");
+      messageDiv.textContent = message;
+      messageDiv.classList.remove("error");
+      messageDiv.classList.add("success");
+    }
+
+    // Função para exibir uma mensagem de erro
+    function showErrorMessage(message) {
+      var messageDiv = document.getElementById("message");
+      messageDiv.textContent = message;
+      messageDiv.classList.remove("success");
+      messageDiv.classList.add("error");
+    }
+
+    // Ao carregar a página, listar os clubes existentes
+    window.onload = function () {
+      listarClubes();
+    };
+  </script>
+</body>
+</html>
